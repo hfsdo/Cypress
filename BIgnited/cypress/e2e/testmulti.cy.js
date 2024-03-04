@@ -1,3 +1,4 @@
+//Defined countries
 var countryArr = [
   {'country':'Netherlands', 'regex':/NL[0-9]{2} [A-Z]{4} [0-9]{4} [0-9]{4} [0-9]{2}/g},
   {'country':'Belgium', 'regex':/BE[0-9]{2} [0-9]{4} [0-9]{4} [0-9]{4}/g},
@@ -6,18 +7,21 @@ var countryArr = [
   {'country':'Sweden', 'regex':/SE[0-9]{2} [0-9]{4} [0-9]{4} [0-9]{4} [0-9]{4} [0-9]{4}/g}
 ]
 
+//check if IBAN MOD 97 calculates to 1
 function checkValidIban(item, index, arr) {
-  var checkval = item.replaceAll(' ', '')
-  checkval = checkval.substring(4)+checkval.substring(0,4)
-  checkval = checkval.replaceAll(/[A-Z]/g, m => m.charCodeAt() - 64+9)
-  checkval = BigInt(checkval) % BigInt(97)
-  expect(parseInt(checkval)).equals(1)
+  var checkVal = item.replaceAll(' ', '')
+  checkVal = checkVal.substring(4)+checkVal.substring(0,4)
+  checkVal = checkVal.replaceAll(/[A-Z]/g, m => m.charCodeAt() - 64+9)
+  checkVal = BigInt(checkVal) % BigInt(97)
+  expect(parseInt(checkVal)).equals(1)
 }
 
+//check if IBAN adheres to country format
 function checkValidPatternIban(item, index, arr) {
   expect(item.match(this.regex)[0]).equal(item)
 }
 
+//check if generated IBAN's are valid and according to country spec
 describe('IBAN multi Testing', () => {
     beforeEach(() => {
         cy.visit('https://d2r3v7evrrggno.cloudfront.net/')

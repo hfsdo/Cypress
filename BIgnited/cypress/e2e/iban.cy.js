@@ -1,8 +1,3 @@
-var countryArr = [
-  {'country':'Netherlands', 'regex':/NL[0-9]{2} [A-Z]{4} [0-9]{4} [0-9]{4} [0-9]{2}/g},
-  {'country':'Belgium', 'regex':/BE[0-9]{2} [0-9]{4} [0-9]{4} [0-9]{4}/g}
-]
-
 describe('IBAN Testing', () => {
   var countryList = {
     'notYetImplemented':/[A-Z0-9 ]*/g,
@@ -17,6 +12,7 @@ describe('IBAN Testing', () => {
 
     cy.contains('IBAN').click()
   })
+
   it('can generate an IBAN', () => {
     cy.get('[id$=iban-generate-button]').click()
     cy.get('#iban-text').should('be.visible').invoke('text').should('not.be.empty')
@@ -51,6 +47,7 @@ describe('IBAN Testing', () => {
 
   it.skip('can generate multiple valid IBAN\'s for a certain country', () => {
     var amount = 5
+    //first attempt at testing multiple countries
     cy.get('[id$=iban-0]>option').each(($el,  index, $list)=>{
       var selText = $el.text()
       alert(selText)
@@ -70,25 +67,27 @@ describe('IBAN Testing', () => {
       cy.get('[id$=iban-generate-button]').click()
       cy.get('#iban-text').should('be.visible').invoke('text').should('not.be.empty')
       cy.get('#iban-text').invoke('text').should(($p) => {
-      expect(($p.match(/\n/g)||[]).length).equal(amount-1)
-      var ibanArr = $p.split('\n')
-      ibanArr.forEach(checkValidIban)
-      ibanArr.forEach(checkValidPatternIban, {_self: this, regex: selRegex})
-    })
+        expect(($p.match(/\n/g)||[]).length).equal(amount-1)
+        var ibanArr = $p.split('\n')
+        ibanArr.forEach(checkValidIban)
+        ibanArr.forEach(checkValidPatternIban, {_self: this, regex: selRegex})
+      })
       
     
-  })
+    })
   
-})
+  })
 
+  //check if IBAN MOD 97 calculates to 1
   function checkValidIban(item, index, arr) {
-    var checkval = item.replaceAll(' ', '')
-    checkval = checkval.substring(4)+checkval.substring(0,4)
-    checkval = checkval.replaceAll(/[A-Z]/g, m => m.charCodeAt() - 64+9)
-    checkval = BigInt(checkval) % BigInt(97)
-    expect(parseInt(checkval)).equals(1)
+    var checkVal = item.replaceAll(' ', '')
+    checkVal = checkVal.substring(4)+checkVal.substring(0,4)
+    checkVal = checkVal.replaceAll(/[A-Z]/g, m => m.charCodeAt() - 64+9)
+    checkVal = BigInt(checkVal) % BigInt(97)
+    expect(parseInt(checkVal)).equals(1)
   }
 
+  //check if IBAN adheres to country format
   function checkValidPatternIban(item, index, arr) {
     expect(item.match(this.regex)[0]).equal(item)
   }
