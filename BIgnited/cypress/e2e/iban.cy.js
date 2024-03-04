@@ -1,4 +1,17 @@
+var countryArr = [
+  {'country':'Netherlands', 'regex':/NL[0-9]{2} [A-Z]{4} [0-9]{4} [0-9]{4} [0-9]{2}/g},
+  {'country':'Belgium', 'regex':/BE[0-9]{2} [0-9]{4} [0-9]{4} [0-9]{4}/g}
+]
+
 describe('IBAN Testing', () => {
+  var countryList = {
+    'notYetImplemented':/[A-Z0-9 ]*/g,
+    'Netherlands':/NL[0-9]{2} [A-Z]{4} [0-9]{4} [0-9]{4} [0-9]{2}/g,
+    'Belgium':/BE[0-9]{2} [0-9]{4} [0-9]{4} [0-9]{4}/g,
+    'test':'testdata'}
+
+ 
+  
   beforeEach(() => {
     cy.visit('https://d2r3v7evrrggno.cloudfront.net/')
 
@@ -36,12 +49,48 @@ describe('IBAN Testing', () => {
     })
   })
 
+  it.skip('can generate multiple valid IBAN\'s for a certain country', () => {
+    var amount = 5
+    cy.get('[id$=iban-0]>option').each(($el,  index, $list)=>{
+      var selText = $el.text()
+      alert(selText)
+      if(selText=='Open this select menu') {
+        var selRegex = countryList['Belgium']
+      } else {
+        var selRegex = countryList[selText]
+      }
+      if (typeof selRegex === 'undefined') {
+        selRegex = countryList['notYetImplemented']
+      }
+      
+      if(selText!="Open this select menu") {
+        cy.get('[id$=iban-0]').select(selText)
+      }
+      cy.get('[id$=iban-1]').type(amount)
+      cy.get('[id$=iban-generate-button]').click()
+      cy.get('#iban-text').should('be.visible').invoke('text').should('not.be.empty')
+      cy.get('#iban-text').invoke('text').should(($p) => {
+      expect(($p.match(/\n/g)||[]).length).equal(amount-1)
+      var ibanArr = $p.split('\n')
+      ibanArr.forEach(checkValidIban)
+      ibanArr.forEach(checkValidPatternIban, {_self: this, regex: selRegex})
+    })
+      
+    
+  })
+  
+})
+
   function checkValidIban(item, index, arr) {
     var checkval = item.replaceAll(' ', '')
     checkval = checkval.substring(4)+checkval.substring(0,4)
     checkval = checkval.replaceAll(/[A-Z]/g, m => m.charCodeAt() - 64+9)
     checkval = BigInt(checkval) % BigInt(97)
     expect(parseInt(checkval)).equals(1)
+  }
+
+  function checkValidPatternIban(item, index, arr) {
+    expect(item.match(this.regex)[0]).equal(item)
   }
 
 })
